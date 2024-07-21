@@ -82,7 +82,8 @@ public:
 
     bool isFinished();
 
-    bool mergeFinished=false;
+    bool mergeDetected();
+
     Viewer* mpViewer;
 
 #ifdef REGISTER_TIMES
@@ -194,21 +195,21 @@ protected:
     g2o::Sim3 mg2oLoopSlw;
     g2o::Sim3 mg2oLoopScw;
     KeyFrame* mpLoopMatchedKF;
-    std::vector<MapPoint*> mvpLoopMPs;//回环相似帧及其共视帧的所有地图点
-    std::vector<MapPoint*> mvpLoopMatchedMPs;//回环相似帧及其共视帧的所有地图点中和当前帧成功关联的地图点
+    std::vector<MapPoint*> mvpLoopMPs;
+    std::vector<MapPoint*> mvpLoopMatchedMPs;
     bool mbMergeDetected;
     int mnMergeNumCoincidences;
     int mnMergeNumNotFound;
     KeyFrame* mpMergeLastCurrentKF;
     g2o::Sim3 mg2oMergeSlw;
-    g2o::Sim3 mg2oMergeSmw;//当前坐标系到融合帧的转换关系
-    g2o::Sim3 mg2oMergeScw;//融合帧世界坐标系到当前帧的转换
+    g2o::Sim3 mg2oMergeSmw;
+    g2o::Sim3 mg2oMergeScw;
     KeyFrame* mpMergeMatchedKF;
-    std::vector<MapPoint*> mvpMergeMPs;//融合相似帧及其共视帧的所有地图点
-    std::vector<MapPoint*> mvpMergeMatchedMPs;//融合相似帧及其共视帧的所有地图点中和当前帧成功关联的地图点
-    std::vector<KeyFrame*> mvpMergeConnectedKFs;//融合帧及融合帧的共视图
+    std::vector<MapPoint*> mvpMergeMPs;
+    std::vector<MapPoint*> mvpMergeMatchedMPs;
+    std::vector<KeyFrame*> mvpMergeConnectedKFs;
 
-    g2o::Sim3 mSold_new;//当前世界坐标系到融合帧坐标系的变换矩阵
+    g2o::Sim3 mSold_new;
     //-------
 
     long unsigned int mLastLoopKFid;

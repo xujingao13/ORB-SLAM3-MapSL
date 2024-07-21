@@ -77,8 +77,10 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
     cv::FileNode node = fsSettings["File.version"];
     if(!node.empty() && node.isString() && node.string() == "1.0"){
         settings_ = new Settings(strSettingsFile,mSensor);
+
         mStrLoadAtlasFromFile = settings_->atlasLoadFile();
         mStrSaveAtlasToFile = settings_->atlasSaveFile();
+
         cout << (*settings_) << endl;
     }
     else{
@@ -100,7 +102,7 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
     bool activeLC = true;
     if(!node.empty())
     {
-        activeLC = static_cast<int>(fsSettings["loopClosing"]) != 0; //回环检测
+        activeLC = static_cast<int>(fsSettings["loopClosing"]) != 0;
     }
 
     mStrVocabularyFilePath = strVocFile;
@@ -123,7 +125,7 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
         cout << "Vocabulary loaded!" << endl << endl;
 
         //Create KeyFrame Database
-        mpKeyFrameDatabase = new KeyFrameDatabase(*mpVocabulary);//关键帧数据库
+        mpKeyFrameDatabase = new KeyFrameDatabase(*mpVocabulary);
 
         //Create the Atlas
         cout << "Initialization of Atlas from scratch " << endl;
@@ -166,7 +168,7 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
 
         loadedAtlas = true;
 
-        mpAtlas->CreateNewMap();//载入地图后新建地图，在新建地图上进行相关操作
+        mpAtlas->CreateNewMap();
 
         //clock_t timeElapsed = clock() - start;
         //unsigned msElapsed = timeElapsed / (CLOCKS_PER_SEC / 1000);
@@ -235,8 +237,8 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
     }
 
     // Fix verbosity
-    Verbose::SetTh(Verbose::VERBOSITY_NORMAL);
-
+    Verbose::SetTh(Verbose::VERBOSITY_QUIET);
+    cout << "INIT COMPLETE" << endl;
 }
 
 Sophus::SE3f System::TrackStereo(const cv::Mat &imLeft, const cv::Mat &imRight, const double &timestamp, const vector<IMU::Point>& vImuMeas, string filename)
@@ -269,9 +271,9 @@ Sophus::SE3f System::TrackStereo(const cv::Mat &imLeft, const cv::Mat &imRight, 
     // Check mode change
     {
         unique_lock<mutex> lock(mMutexMode);
-        if(mbActivateLocalizationMode)//仅定位模式；不优化地图点；不增加关键帧
+        if(mbActivateLocalizationMode)
         {
-            mpLocalMapper->RequestStop();//在SLAM初始化时,使用
+            mpLocalMapper->RequestStop();
 
             // Wait until Local Mapping has effectively stopped
             while(!mpLocalMapper->isStopped())
@@ -282,7 +284,7 @@ Sophus::SE3f System::TrackStereo(const cv::Mat &imLeft, const cv::Mat &imRight, 
             mpTracker->InformOnlyTracking(true);
             mbActivateLocalizationMode = false;
         }
-        if(mbDeactivateLocalizationMode) 
+        if(mbDeactivateLocalizationMode)
         {
             mpTracker->InformOnlyTracking(false);
             mpLocalMapper->Release();
@@ -308,7 +310,7 @@ Sophus::SE3f System::TrackStereo(const cv::Mat &imLeft, const cv::Mat &imRight, 
 
     if (mSensor == System::IMU_STEREO)
         for(size_t i_imu = 0; i_imu < vImuMeas.size(); i_imu++)
-            mpTracker->GrabImuData(vImuMeas[i_imu]);//将IMU数据存放至mlQueueImuData
+            mpTracker->GrabImuData(vImuMeas[i_imu]);
 
     // std::cout << "start GrabImageStereo" << std::endl;
     Sophus::SE3f Tcw = mpTracker->GrabImageStereo(imLeftToFeed,imRightToFeed,timestamp,filename);
@@ -526,20 +528,22 @@ void System::Shutdown()
         mpViewer->RequestFinish();
         while(!mpViewer->isFinished())
             usleep(5000);
+        delete mpViewer;
+        mpViewer = static_cast<Viewer*>(NULL);
     }
 
     // Wait until all thread have effectively stopped
     while(!mpLocalMapper->isFinished() || !mpLoopCloser->isFinished() || mpLoopCloser->isRunningGBA())
     {
-        if(!mpLocalMapper->isFinished())
-            cout << "mpLocalMapper is not finished" << endl;
-        if(!mpLoopCloser->isFinished())
+        /*if(!mpLocalMapper->isFinished())
+            cout << "mpLocalMapper is not finished" << endl;*/
+        /*if(!mpLoopCloser->isFinished())
             cout << "mpLoopCloser is not finished" << endl;
         if(mpLoopCloser->isRunningGBA()){
             cout << "mpLoopCloser is running GBA" << endl;
             cout << "break anyway..." << endl;
             break;
-        }
+        }*/
         usleep(5000);
     }
 
@@ -549,8 +553,8 @@ void System::Shutdown()
         SaveAtlas(FileType::BINARY_FILE);
     }
 
-    /*if(mpViewer)
-        pangolin::BindToContext("ORB-SLAM2: Map Viewer");*/
+    if(mpViewer)
+        pangolin::BindToContext("ORB-SLAM2: Map Viewer");
 
 #ifdef REGISTER_TIMES
     mpTracker->PrintTimeStats();
@@ -1334,6 +1338,16 @@ vector<cv::KeyPoint> System::GetTrackedKeyPointsUn()
     return mTrackedKeyPointsUn;
 }
 
+Atlas* System::GetAtlas()
+{
+    return mpAtlas;
+}
+
+LoopClosing* System::GetLoopClosing()
+{
+    return mpLoopCloser;
+}
+
 double System::GetTimeFromIMUInit()
 {
     double aux = mpLocalMapper->GetCurrKFTime()-mpLocalMapper->mFirstTs;
@@ -1485,7 +1499,7 @@ bool System::LoadAtlas(int type)
     if(isRead)
     {
         //Check if the vocabulary is the same
-        string strInputVocabularyChecksum = CalculateCheckSum(mStrVocabularyFilePath,TEXT_FILE);//检查是否使用同一个字典
+        string strInputVocabularyChecksum = CalculateCheckSum(mStrVocabularyFilePath,TEXT_FILE);
 
         if(strInputVocabularyChecksum.compare(strVocChecksum) != 0)
         {
