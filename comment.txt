@@ -1,0 +1,30 @@
+安装依赖：
+pangolin 0.5版本
+ROS 
+OpenCv 建议不用单独安装，直接使用ROS自带的版本，即4.2.0版本
+
+
+编译：
+和ORB-SLAM3官方的编译过程一致，直接参考github即可
+
+
+运行：
+1. 运行roscore
+
+2. 确定一下跑单目还是双目
+单目：rosrun ORB_SLAM3 Mono ./Vocabulary/ORBvoc.txt ./Examples/ROS/ORB_SLAM3/EuRoC.yaml
+双目：rosrun ORB_SLAM3 Stereo ./Vocabulary/ORBvoc.txt ./Examples/ROS/ORB_SLAM3/EuRoC.yaml false
+
+3. 播放bag包 在目录/dataset/MH_03_medium.bag下
+rosbag play xxx.bag
+
+
+
+如何保存地图：
+想要保存地图时，需要修改EuRoC.yaml这样的配置文件，以./Examples/ROS/ORB_SLAM3/EuRoC.yaml为例，打开该文件，然后找到System.SaveAtlasToFile字段，将前面的#删除，也就是取消这一行的注释。然后运行代码，运行结束以后就可以得到保存的地图文件，mapeuro.osa
+
+如何加载地图：
+想要加载之前保存地图时，需要修改EuRoC.yaml这样的配置文件，以./Examples/ROS/ORB_SLAM3/EuRoC.yaml为例，打开该文件，然后找到System.LoadAtlasFromFile，将前面的#删除，也就是取消这一行的注释。然后运行代码
+
+注意，System.SaveAtlasToFile和System.LoadAtlasFromFile不可以同时开启，只能选择保存地图和加载地图中的一种模式
+

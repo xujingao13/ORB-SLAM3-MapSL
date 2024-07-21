@@ -1,0 +1,5 @@
+
+rosrun ORB_SLAM3 Mono ./Vocabulary/ORBvoc.txt ./Examples/ROS/ORB_SLAM3/EuRoC.yaml
+
+
+rosrun ORB_SLAM3 Stereo ./Vocabulary/ORBvoc.txt ./Examples/ROS/ORB_SLAM3/EuRoC.yaml false

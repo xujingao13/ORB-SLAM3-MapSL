@@ -30,3 +30,12 @@
 *.exe
 *.out
 *.app
+
+# Dataset
+/dataset/
+
+# Map
+*.osa
+
+# Temp
+.DS_Store
